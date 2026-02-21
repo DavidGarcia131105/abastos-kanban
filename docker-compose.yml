@@ -1,6 +1,22 @@
 version: "3.9"
 
 services:
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: abastos-app
+    restart: always
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - abastos-network
+
   db:
     image: postgres:16
     container_name: abastos-postgres
@@ -13,6 +29,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - abastos-network
 
   pgadmin:
     image: dpage/pgadmin4
@@ -25,6 +43,11 @@ services:
       - "5050:80"
     depends_on:
       - db
+    networks:
+      - abastos-network
+
+networks:
+  abastos-network:
 
 volumes:
   postgres_data:
