@@ -12,15 +12,17 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => ['required','email'],
+            'identifier' => ['required', 'string'],
             'password' => ['required'],
         ]);
 
-        $user = User::where('email', $credentials['email'])->first();
+        $user = User::where('email', $credentials['identifier'])
+        ->orWhere('username', $credentials['identifier'])
+        ->first();
 
         if(!$user || !Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['Credenciales inválidas'],
+                'identifier' => ['Credenciales inválidas'],
             ]);
         }
 

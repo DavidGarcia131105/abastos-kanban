@@ -1,12 +1,12 @@
-import { use, useState } from 'react';
-import { data, useActionData, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { login } from '../../services/api';
 import '../../styles/login.css';
 
 
 export default function Login(){
     const navigate = useNavigate();
-    const [email,setEmail] = useState('');
+    const [identifier,setIdentifier] = useState('');
     const [password,setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -17,11 +17,10 @@ export default function Login(){
         setLoading(true);
 
         try{
-            await login(email,password);
-            console.log(data);
+            await login(identifier,password);
             navigate('/board');
         }catch(err){
-            setError('Email o contraseña inválidos');
+            setError('Credenciales o contraseña inválidos');
         }finally{
             setLoading(false);
         }
@@ -41,9 +40,9 @@ export default function Login(){
             <label className="field">
               <span>Correo</span>
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 placeholder="admin@abastos.com"
                 autoComplete="username"
                 required
@@ -53,7 +52,7 @@ export default function Login(){
             <label className="field">
               <span>Contraseña</span>
               <input
-                type="password"
+                type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"

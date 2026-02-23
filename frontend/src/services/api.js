@@ -32,14 +32,14 @@ const handleResponse = async (res) => {
 };
 
 // AUTH
-export const login = async (email, password) => {
+export const login = async (identifier, password) => {
   const res = await fetch(`${API_URL}/api/login`, {
     method: 'POST',
     headers: {
       ...getHeaders(false),
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ identifier, password }),
   });
 
   const data = await handleResponse(res);
