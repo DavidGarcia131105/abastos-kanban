@@ -3,6 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import { createTask, deleteTask, getTasks, updateTask, logout } from '../../services/api';
 import '../../styles/board.css';
 
+const STATUS_LABELS = {
+  todo: 'To Do',
+  doing: 'Doing',
+  done: 'Done',
+};
+
+const COLUMN_STATUSES = ['todo', 'doing', 'done'];
+
+const MOVE_TARGETS = {
+  todo: ['doing', 'done'],
+  doing: ['done', 'todo'],
+  done: ['todo', 'doing'],
+};
+
 export default function Board() {
   const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
@@ -77,9 +91,15 @@ export default function Board() {
     );
   });
 
-  const todoTasks = filteredTasks.filter((task) => task.status === 'todo');
-  const doingTasks = filteredTasks.filter((task) => task.status === 'doing');
-  const doneTasks = filteredTasks.filter((task) => task.status === 'done');
+  const tasksByStatus = filteredTasks.reduce(
+    (acc, task) => {
+      if (acc[task.status]) {
+        acc[task.status].push(task);
+      }
+      return acc;
+    },
+    { todo: [], doing: [], done: [] }
+  );
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -207,6 +227,51 @@ export default function Board() {
     }
   };
 
+  const renderTaskCard = (task) => (
+    <article
+      key={task.id}
+      className={`board-task-card ${draggedTaskId === task.id ? 'board-task-card-dragging' : ''}`}
+      draggable
+      onDragStart={() => handleDragStart(task.id)}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="board-task-head">
+        <h3>{task.title}</h3>
+        <button
+          className="board-icon-btn"
+          onClick={() => openEditModal(task)}
+          type="button"
+          aria-label="Editar tarea"
+          title="Editar tarea"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 20h4l10-10-4-4L4 16v4Zm12-13 2 2 1.2-1.2a1 1 0 0 0 0-1.4l-.6-.6a1 1 0 0 0-1.4 0L16 7Z" />
+          </svg>
+        </button>
+      </div>
+      <p>{task.description || 'Sin descripcion'}</p>
+      <div className="board-task-actions">
+        {MOVE_TARGETS[task.status].map((targetStatus) => (
+          <button
+            key={`${task.id}-${targetStatus}`}
+            className="board-ghost-btn"
+            onClick={() => handleMove(task.id, targetStatus)}
+            type="button"
+          >
+            Mover a {STATUS_LABELS[targetStatus]}
+          </button>
+        ))}
+        <button
+          className="board-danger-btn"
+          onClick={() => openDeleteModal(task)}
+          type="button"
+        >
+          Eliminar
+        </button>
+      </div>
+    </article>
+  );
+
   return (
     <div className="board-page">
       <header className="board-header">
@@ -271,194 +336,29 @@ export default function Board() {
       {error && <p className="board-message board-error">{error}</p>}
 
       <div className="board-grid">
-        <section
-          className={`board-column ${dragOverStatus === 'todo' ? 'board-column-over' : ''}`}
-          onDragOver={(e) => handleColumnDragOver(e, 'todo')}
-          onDrop={(e) => handleColumnDrop(e, 'todo')}
-        >
-          <div className="board-column-head">
-            <h2>To Do</h2>
-            <span>{todoTasks.length}</span>
-          </div>
-          {todoTasks.length === 0 ? (
-            <p className="board-empty">Sin tareas</p>
-          ) : (
-            todoTasks.map((task) => (
-              <article
-                key={task.id}
-                className={`board-task-card ${draggedTaskId === task.id ? 'board-task-card-dragging' : ''}`}
-                draggable
-                onDragStart={() => handleDragStart(task.id)}
-                onDragEnd={handleDragEnd}
-              >
-                <div className="board-task-head">
-                  <h3>{task.title}</h3>
-                  <button
-                    className="board-icon-btn"
-                    onClick={() => openEditModal(task)}
-                    type="button"
-                    aria-label="Editar tarea"
-                    title="Editar tarea"
-                  >
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M4 20h4l10-10-4-4L4 16v4Zm12-13 2 2 1.2-1.2a1 1 0 0 0 0-1.4l-.6-.6a1 1 0 0 0-1.4 0L16 7Z" />
-                    </svg>
-                  </button>
-                </div>
-                <p>{task.description || 'Sin descripcion'}</p>
-                <div className="board-task-actions">
-                  <button
-                    className="board-ghost-btn"
-                    onClick={() => handleMove(task.id, 'doing')}
-                    type="button"
-                  >
-                    Mover a Doing
-                  </button>
-                  <button
-                    className="board-ghost-btn"
-                    onClick={() => handleMove(task.id, 'done')}
-                    type="button"
-                  >
-                    Mover a Done
-                  </button>
-                  <button
-                    className="board-danger-btn"
-                    onClick={() => openDeleteModal(task)}
-                    type="button"
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </article>
-            ))
-          )}
-        </section>
+        {COLUMN_STATUSES.map((columnStatus) => {
+          const columnTasks = tasksByStatus[columnStatus];
 
-        <section
-          className={`board-column ${dragOverStatus === 'doing' ? 'board-column-over' : ''}`}
-          onDragOver={(e) => handleColumnDragOver(e, 'doing')}
-          onDrop={(e) => handleColumnDrop(e, 'doing')}
-        >
-          <div className="board-column-head">
-            <h2>Doing</h2>
-            <span>{doingTasks.length}</span>
-          </div>
-          {doingTasks.length === 0 ? (
-            <p className="board-empty">Sin tareas</p>
-          ) : (
-            doingTasks.map((task) => (
-              <article
-                key={task.id}
-                className={`board-task-card ${draggedTaskId === task.id ? 'board-task-card-dragging' : ''}`}
-                draggable
-                onDragStart={() => handleDragStart(task.id)}
-                onDragEnd={handleDragEnd}
-              >
-                <div className="board-task-head">
-                  <h3>{task.title}</h3>
-                  <button
-                    className="board-icon-btn"
-                    onClick={() => openEditModal(task)}
-                    type="button"
-                    aria-label="Editar tarea"
-                    title="Editar tarea"
-                  >
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M4 20h4l10-10-4-4L4 16v4Zm12-13 2 2 1.2-1.2a1 1 0 0 0 0-1.4l-.6-.6a1 1 0 0 0-1.4 0L16 7Z" />
-                    </svg>
-                  </button>
-                </div>
-                <p>{task.description || 'Sin descripcion'}</p>
-                <div className="board-task-actions">
-                  <button
-                    className="board-ghost-btn"
-                    onClick={() => handleMove(task.id, 'done')}
-                    type="button"
-                  >
-                    Mover a Done
-                  </button>
-                  <button
-                    className="board-ghost-btn"
-                    onClick={() => handleMove(task.id, 'todo')}
-                    type="button"
-                  >
-                    Mover a To Do
-                  </button>
-                  <button
-                    className="board-danger-btn"
-                    onClick={() => openDeleteModal(task)}
-                    type="button"
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </article>
-            ))
-          )}
-        </section>
+          return (
+            <section
+              key={columnStatus}
+              className={`board-column ${dragOverStatus === columnStatus ? 'board-column-over' : ''}`}
+              onDragOver={(e) => handleColumnDragOver(e, columnStatus)}
+              onDrop={(e) => handleColumnDrop(e, columnStatus)}
+            >
+              <div className="board-column-head">
+                <h2>{STATUS_LABELS[columnStatus]}</h2>
+                <span>{columnTasks.length}</span>
+              </div>
 
-        <section
-          className={`board-column ${dragOverStatus === 'done' ? 'board-column-over' : ''}`}
-          onDragOver={(e) => handleColumnDragOver(e, 'done')}
-          onDrop={(e) => handleColumnDrop(e, 'done')}
-        >
-          <div className="board-column-head">
-            <h2>Done</h2>
-            <span>{doneTasks.length}</span>
-          </div>
-          {doneTasks.length === 0 ? (
-            <p className="board-empty">Sin tareas</p>
-          ) : (
-            doneTasks.map((task) => (
-              <article
-                key={task.id}
-                className={`board-task-card ${draggedTaskId === task.id ? 'board-task-card-dragging' : ''}`}
-                draggable
-                onDragStart={() => handleDragStart(task.id)}
-                onDragEnd={handleDragEnd}
-              >
-                <div className="board-task-head">
-                  <h3>{task.title}</h3>
-                  <button
-                    className="board-icon-btn"
-                    onClick={() => openEditModal(task)}
-                    type="button"
-                    aria-label="Editar tarea"
-                    title="Editar tarea"
-                  >
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M4 20h4l10-10-4-4L4 16v4Zm12-13 2 2 1.2-1.2a1 1 0 0 0 0-1.4l-.6-.6a1 1 0 0 0-1.4 0L16 7Z" />
-                    </svg>
-                  </button>
-                </div>
-                <p>{task.description || 'Sin descripcion'}</p>
-                <div className="board-task-actions">
-                  <button
-                    className="board-ghost-btn"
-                    onClick={() => handleMove(task.id, 'todo')}
-                    type="button"
-                  >
-                    Mover a To Do
-                  </button>
-                  <button
-                    className="board-ghost-btn"
-                    onClick={() => handleMove(task.id, 'doing')}
-                    type="button"
-                  >
-                    Mover a Doing
-                  </button>
-                  <button
-                    className="board-danger-btn"
-                    onClick={() => openDeleteModal(task)}
-                    type="button"
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </article>
-            ))
-          )}
-        </section>
+              {columnTasks.length === 0 ? (
+                <p className="board-empty">Sin tareas</p>
+              ) : (
+                columnTasks.map((task) => renderTaskCard(task))
+              )}
+            </section>
+          );
+        })}
       </div>
 
       {taskToEdit && (
