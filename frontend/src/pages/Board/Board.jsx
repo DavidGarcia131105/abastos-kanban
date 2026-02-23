@@ -15,6 +15,10 @@ export default function Board() {
   const [dragOverStatus, setDragOverStatus] = useState(null);
   const [taskToDelete, setTaskToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [taskToEdit, setTaskToEdit] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
   const [searchText, setSearchText] = useState('');
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -162,6 +166,47 @@ export default function Board() {
     }
   };
 
+  const openEditModal = (task) => {
+    setError('');
+    setTaskToEdit(task);
+    setEditTitle(task.title || '');
+    setEditDescription(task.description || '');
+  };
+
+  const closeEditModal = () => {
+    if (isEditing) return;
+    setTaskToEdit(null);
+    setEditTitle('');
+    setEditDescription('');
+  };
+
+  const handleConfirmEdit = async (e) => {
+    e.preventDefault();
+    if (!taskToEdit) return;
+
+    setError('');
+    setIsEditing(true);
+
+    try {
+      const updated = await updateTask(taskToEdit.id, {
+        title: editTitle,
+        description: editDescription,
+      });
+
+      setTasks((prev) =>
+        prev.map((task) => (task.id === taskToEdit.id ? updated : task))
+      );
+
+      setTaskToEdit(null);
+      setEditTitle('');
+      setEditDescription('');
+    } catch (editError) {
+      setError('No se pudo editar la tarea');
+    } finally {
+      setIsEditing(false);
+    }
+  };
+
   return (
     <div className="board-page">
       <header className="board-header">
@@ -246,7 +291,20 @@ export default function Board() {
                 onDragStart={() => handleDragStart(task.id)}
                 onDragEnd={handleDragEnd}
               >
-                <h3>{task.title}</h3>
+                <div className="board-task-head">
+                  <h3>{task.title}</h3>
+                  <button
+                    className="board-icon-btn"
+                    onClick={() => openEditModal(task)}
+                    type="button"
+                    aria-label="Editar tarea"
+                    title="Editar tarea"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M4 20h4l10-10-4-4L4 16v4Zm12-13 2 2 1.2-1.2a1 1 0 0 0 0-1.4l-.6-.6a1 1 0 0 0-1.4 0L16 7Z" />
+                    </svg>
+                  </button>
+                </div>
                 <p>{task.description || 'Sin descripcion'}</p>
                 <div className="board-task-actions">
                   <button
@@ -296,7 +354,20 @@ export default function Board() {
                 onDragStart={() => handleDragStart(task.id)}
                 onDragEnd={handleDragEnd}
               >
-                <h3>{task.title}</h3>
+                <div className="board-task-head">
+                  <h3>{task.title}</h3>
+                  <button
+                    className="board-icon-btn"
+                    onClick={() => openEditModal(task)}
+                    type="button"
+                    aria-label="Editar tarea"
+                    title="Editar tarea"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M4 20h4l10-10-4-4L4 16v4Zm12-13 2 2 1.2-1.2a1 1 0 0 0 0-1.4l-.6-.6a1 1 0 0 0-1.4 0L16 7Z" />
+                    </svg>
+                  </button>
+                </div>
                 <p>{task.description || 'Sin descripcion'}</p>
                 <div className="board-task-actions">
                   <button
@@ -346,7 +417,20 @@ export default function Board() {
                 onDragStart={() => handleDragStart(task.id)}
                 onDragEnd={handleDragEnd}
               >
-                <h3>{task.title}</h3>
+                <div className="board-task-head">
+                  <h3>{task.title}</h3>
+                  <button
+                    className="board-icon-btn"
+                    onClick={() => openEditModal(task)}
+                    type="button"
+                    aria-label="Editar tarea"
+                    title="Editar tarea"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M4 20h4l10-10-4-4L4 16v4Zm12-13 2 2 1.2-1.2a1 1 0 0 0 0-1.4l-.6-.6a1 1 0 0 0-1.4 0L16 7Z" />
+                    </svg>
+                  </button>
+                </div>
                 <p>{task.description || 'Sin descripcion'}</p>
                 <div className="board-task-actions">
                   <button
@@ -376,6 +460,58 @@ export default function Board() {
           )}
         </section>
       </div>
+
+      {taskToEdit && (
+        <div className="board-modal-backdrop" onClick={closeEditModal}>
+          <div
+            className="board-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="edit-task-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="edit-task-title">Editar tarea</h3>
+            <form className="board-edit-form" onSubmit={handleConfirmEdit}>
+              <label className="board-edit-field">
+                <span>Titulo</span>
+                <input
+                  className="board-input"
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  maxLength={255}
+                  required
+                  disabled={isEditing}
+                />
+              </label>
+              <label className="board-edit-field">
+                <span>Descripcion corta</span>
+                <textarea
+                  className="board-input board-textarea"
+                  rows={3}
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  maxLength={255}
+                  disabled={isEditing}
+                />
+              </label>
+              <div className="board-modal-actions">
+                <button
+                  className="board-ghost-btn"
+                  type="button"
+                  onClick={closeEditModal}
+                  disabled={isEditing}
+                >
+                  Cancelar
+                </button>
+                <button className="board-primary-btn" type="submit" disabled={isEditing}>
+                  {isEditing ? 'Guardando...' : 'Guardar cambios'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {taskToDelete && (
         <div className="board-modal-backdrop" onClick={closeDeleteModal}>
