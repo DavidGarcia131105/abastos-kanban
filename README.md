@@ -73,11 +73,12 @@ abastos-kanban/
 Desde la raiz del proyecto:
 
 ```bash
-docker compose up -d db app pgadmin
-docker compose exec app composer install
-docker compose exec app cp .env.example .env
-docker compose exec app php artisan key:generate
-docker compose exec app php artisan migrate:fresh --seed --no-interaction
+docker compose up -d db pgadmin
+docker compose run --rm app composer install
+docker compose run --rm app sh -lc 'test -f .env || cp .env.example .env'
+docker compose run --rm app php artisan key:generate
+docker compose run --rm app php artisan migrate:fresh --seed --no-interaction
+docker compose up -d app
 ```
 
 URLs utiles:
