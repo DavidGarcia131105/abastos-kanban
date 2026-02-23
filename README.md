@@ -188,4 +188,4 @@ Frontend (Render Static Site):
 - ChatGPT/Codex para:
   - debugging de errores puntuales
   - refactor de componentes (reduccion de duplicacion en board)
-  - soporte de integracion API y despliegue
+  - copiloto de integracion API y despliegue
