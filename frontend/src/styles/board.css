@@ -132,6 +132,7 @@
   border-radius: 18px;
   border: 1px solid rgba(31, 61, 108, 0.11);
   min-height: 330px;
+  min-width: 0;
   padding: 14px;
   display: grid;
   align-content: start;
@@ -181,6 +182,8 @@
   border: 1px solid rgba(31, 61, 108, 0.11);
   border-radius: 14px;
   padding: 12px;
+  min-width: 0;
+  overflow: hidden;
   display: grid;
   gap: 8px;
   cursor: grab;
@@ -195,18 +198,25 @@
   margin: 0;
   font-size: 0.95rem;
   color: #10243f;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 .board-task-card p {
   margin: 0;
   font-size: 0.84rem;
   color: #4d6387;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 .board-task-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
+  min-width: 0;
 }
 
 .board-ghost-btn {
@@ -219,6 +229,10 @@
   padding: 6px 10px;
   cursor: pointer;
   transition: border-color 0.18s ease, transform 0.18s ease;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .board-ghost-btn:hover {
@@ -236,6 +250,10 @@
   padding: 6px 10px;
   cursor: pointer;
   transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .board-danger-btn:hover {
@@ -279,6 +297,8 @@
   margin: 0;
   color: #4d6387;
   font-size: 0.92rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .board-modal-actions {
