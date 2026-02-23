@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: abastos-app
+    restart: always
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - abastos-network
+
+  db:
+    image: postgres:16
+    container_name: abastos-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: abastos
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: kanban
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - abastos-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: abastos-pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@abastos.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    networks:
+      - abastos-network
+
+networks:
+  abastos-network:
+
+volumes:
+  postgres_data:
