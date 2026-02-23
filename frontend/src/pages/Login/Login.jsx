@@ -43,7 +43,7 @@ export default function Login(){
                 type="text"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                placeholder="admin@abastos.com"
+                placeholder="Username o Correo Electrónico"
                 autoComplete="username"
                 required
               />
