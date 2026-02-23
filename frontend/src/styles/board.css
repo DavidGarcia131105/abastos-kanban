@@ -69,6 +69,25 @@
   color: #153154;
 }
 
+.board-filter-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  border: 1px solid rgba(31, 61, 108, 0.12);
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.board-filter-card h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #153154;
+}
+
+.board-filter-input {
+  width: 100%;
+}
+
 .board-create-form {
   display: grid;
   grid-template-columns: 2fr 2fr 1fr auto;

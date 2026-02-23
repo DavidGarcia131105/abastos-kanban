@@ -13,6 +13,7 @@ export default function Board() {
   const [dragOverStatus, setDragOverStatus] = useState(null);
   const [taskToDelete, setTaskToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
     const loadTasks = async () => {
@@ -32,9 +33,21 @@ export default function Board() {
     loadTasks();
   }, []);
 
-  const todoTasks = tasks.filter((task) => task.status === 'todo');
-  const doingTasks = tasks.filter((task) => task.status === 'doing');
-  const doneTasks = tasks.filter((task) => task.status === 'done');
+  const normalizedSearch = searchText.trim().toLowerCase();
+
+  const filteredTasks = tasks.filter((task) => {
+    if (!normalizedSearch) return true;
+    const currentTitle = (task.title || '').toLowerCase();
+    const currentDescription = (task.description || '').toLowerCase();
+    return (
+      currentTitle.includes(normalizedSearch) ||
+      currentDescription.includes(normalizedSearch)
+    );
+  });
+
+  const todoTasks = filteredTasks.filter((task) => task.status === 'todo');
+  const doingTasks = filteredTasks.filter((task) => task.status === 'doing');
+  const doneTasks = filteredTasks.filter((task) => task.status === 'done');
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -130,7 +143,7 @@ export default function Board() {
         </div>
         <div className="board-total">
           <span>Total</span>
-          <strong>{tasks.length}</strong>
+          <strong>{filteredTasks.length}</strong>
         </div>
       </header>
 
@@ -165,6 +178,17 @@ export default function Board() {
             Crear tarea
           </button>
         </form>
+      </section>
+
+      <section className="board-filter-card">
+        <h2>Filtrar tareas</h2>
+        <input
+          className="board-input board-filter-input"
+          type="text"
+          placeholder="Buscar por titulo o descripcion"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+        />
       </section>
 
       {loading && <p className="board-message">Cargando...</p>}
