@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
-import { createTask, deleteTask, getTasks, updateTask } from '../../services/api';
+import { useNavigate } from 'react-router-dom';
+import { createTask, deleteTask, getTasks, updateTask, logout } from '../../services/api';
 import '../../styles/board.css';
 
 export default function Board() {
+  const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -14,6 +16,8 @@ export default function Board() {
   const [taskToDelete, setTaskToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     const loadTasks = async () => {
@@ -32,6 +36,30 @@ export default function Board() {
 
     loadTasks();
   }, []);
+
+  const openLogoutModal = () => {
+    setError('');
+    setIsLogoutModalOpen(true);
+  };
+
+  const closeLogoutModal = () => {
+    if (isLoggingOut) return;
+    setIsLogoutModalOpen(false);
+  };
+
+  const handleConfirmLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } catch (err) {
+      setError('No se pudo cerrar sesión');
+    } finally {
+      localStorage.removeItem('token');
+      navigate('/login');
+      setIsLoggingOut(false);
+      setIsLogoutModalOpen(false);
+    }
+  };
 
   const normalizedSearch = searchText.trim().toLowerCase();
 
@@ -145,6 +173,9 @@ export default function Board() {
           <span>Total</span>
           <strong>{filteredTasks.length}</strong>
         </div>
+        <button className="board-logout-btn" type="button" onClick={openLogoutModal}>
+          Cerrar sesion
+        </button>
       </header>
 
       <section className="board-create-card">
@@ -376,6 +407,42 @@ export default function Board() {
                 disabled={isDeleting}
               >
                 {isDeleting ? 'Eliminando...' : 'Si, eliminar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isLogoutModalOpen && (
+        <div className="board-modal-backdrop" onClick={closeLogoutModal}>
+          <div
+            className="board-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="logout-modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="logout-modal-title">Cerrar sesion</h3>
+            <p>
+              Vas a cerrar la sesion actual. Para volver al tablero tienes que
+              iniciar sesion otra vez.
+            </p>
+            <div className="board-modal-actions">
+              <button
+                className="board-ghost-btn"
+                type="button"
+                onClick={closeLogoutModal}
+                disabled={isLoggingOut}
+              >
+                Cancelar
+              </button>
+              <button
+                className="board-danger-btn"
+                type="button"
+                onClick={handleConfirmLogout}
+                disabled={isLoggingOut}
+              >
+                {isLoggingOut ? 'Cerrando...' : 'Si, cerrar sesion'}
               </button>
             </div>
           </div>
