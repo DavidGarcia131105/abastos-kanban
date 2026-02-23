@@ -9,6 +9,21 @@ const STATUS_LABELS = {
   done: 'Done',
 };
 
+const DATE_FORMATTER = new Intl.DateTimeFormat('es-ES', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+});
+
+const formatCreatedAt = (value) => {
+  if (!value) return 'Sin fecha';
+  const parsedDate = new Date(value);
+  if (Number.isNaN(parsedDate.getTime())) return 'Fecha invalida';
+  return DATE_FORMATTER.format(parsedDate);
+};
+
 const COLUMN_STATUSES = ['todo', 'doing', 'done'];
 
 const MOVE_TARGETS = {
@@ -250,6 +265,9 @@ export default function Board() {
         </button>
       </div>
       <p>{task.description || 'Sin descripcion'}</p>
+      <small className="board-task-date">
+      Creada: {formatCreatedAt(task.created_at)}
+      </small>
       <div className="board-task-actions">
         {MOVE_TARGETS[task.status].map((targetStatus) => (
           <button

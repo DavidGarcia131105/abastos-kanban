@@ -265,6 +265,14 @@
   min-width: 0;
 }
 
+.board-task-date {
+  display: block;
+  margin: 0;
+  font-size: 0.75rem;
+  color: #5f6f8a;
+  font-weight: 600;
+}
+
 .board-icon-btn {
   width: 30px;
   height: 30px;
