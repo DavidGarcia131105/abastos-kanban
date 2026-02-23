@@ -2,7 +2,8 @@
 set -euo pipefail
 
 BASE_URL="${BASE_URL:-http://localhost:8000}"
-EMAIL="${EMAIL:-admin@abastos.com}"
+# API uses "identifier" (email or username). Keep EMAIL fallback for compatibility.
+IDENTIFIER="${IDENTIFIER:-${EMAIL:-admin@abastos.com}}"
 PASSWORD="${PASSWORD:-secret123}"
 
 echo "== Sanctum check against: ${BASE_URL}"
@@ -35,7 +36,7 @@ echo "OK: /api/me without token -> 401"
 login_response="$(body POST "${BASE_URL}/api/login" \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
-  -d "{\"email\":\"${EMAIL}\",\"password\":\"${PASSWORD}\"}")"
+  -d "{\"identifier\":\"${IDENTIFIER}\",\"password\":\"${PASSWORD}\"}")"
 
 token="$(printf '%s' "$login_response" | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')"
 if [[ -z "${token}" ]]; then
