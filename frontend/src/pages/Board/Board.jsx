@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { createTask, getTasks, updateTask } from '../../services/api';
+import { createTask, deleteTask, getTasks, updateTask } from '../../services/api';
 import '../../styles/board.css';
 
 export default function Board() {
@@ -11,6 +11,8 @@ export default function Board() {
   const [status, setStatus] = useState('todo');
   const [draggedTaskId, setDraggedTaskId] = useState(null);
   const [dragOverStatus, setDragOverStatus] = useState(null);
+  const [taskToDelete, setTaskToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const loadTasks = async () => {
@@ -36,6 +38,8 @@ export default function Board() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
+    setError('');
+
     try {
       const payload = { title, description, status };
       const created = await createTask(payload);
@@ -49,6 +53,8 @@ export default function Board() {
   };
 
   const handleMove = async (taskId, newStatus) => {
+    setError('');
+
     try {
       const updated = await updateTask(taskId, { status: newStatus });
       setTasks((prev) =>
@@ -88,6 +94,31 @@ export default function Board() {
 
     await handleMove(draggedTaskId, newStatus);
     handleDragEnd();
+  };
+
+  const openDeleteModal = (task) => {
+    setError('');
+    setTaskToDelete(task);
+  };
+
+  const closeDeleteModal = () => {
+    if (isDeleting) return;
+    setTaskToDelete(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!taskToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteTask(taskToDelete.id);
+      setTasks((prev) => prev.filter((task) => task.id !== taskToDelete.id));
+      setTaskToDelete(null);
+    } catch (deleteError) {
+      setError('No se pudo eliminar la tarea');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -177,6 +208,13 @@ export default function Board() {
                   >
                     Mover a Done
                   </button>
+                  <button
+                    className="board-danger-btn"
+                    onClick={() => openDeleteModal(task)}
+                    type="button"
+                  >
+                    Eliminar
+                  </button>
                 </div>
               </article>
             ))
@@ -219,6 +257,13 @@ export default function Board() {
                     type="button"
                   >
                     Mover a To Do
+                  </button>
+                  <button
+                    className="board-danger-btn"
+                    onClick={() => openDeleteModal(task)}
+                    type="button"
+                  >
+                    Eliminar
                   </button>
                 </div>
               </article>
@@ -263,12 +308,55 @@ export default function Board() {
                   >
                     Mover a Doing
                   </button>
+                  <button
+                    className="board-danger-btn"
+                    onClick={() => openDeleteModal(task)}
+                    type="button"
+                  >
+                    Eliminar
+                  </button>
                 </div>
               </article>
             ))
           )}
         </section>
       </div>
+
+      {taskToDelete && (
+        <div className="board-modal-backdrop" onClick={closeDeleteModal}>
+          <div
+            className="board-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-task-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="delete-task-title">Eliminar tarea</h3>
+            <p>
+              Vas a eliminar <strong>{taskToDelete.title}</strong>. Esta accion no se
+              puede deshacer.
+            </p>
+            <div className="board-modal-actions">
+              <button
+                className="board-ghost-btn"
+                type="button"
+                onClick={closeDeleteModal}
+                disabled={isDeleting}
+              >
+                Cancelar
+              </button>
+              <button
+                className="board-danger-btn"
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Eliminando...' : 'Si, eliminar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
